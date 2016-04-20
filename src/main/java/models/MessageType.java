@@ -1,11 +1,9 @@
 package models;
 
-import lombok.Data;
 
 /**
  * Created by sank on 4/19/16.
  */
-@Data
 public enum MessageType {
     Choke((byte) 0),
     Unchoke((byte) 1),
