@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by sank on 4/20/16.
- */
 public class StartRemotePeers {
     public static void main(String[] args) {
         PeerImplementation peerImplementation = new PeerImplementation();
