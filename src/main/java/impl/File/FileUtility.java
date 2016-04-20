@@ -21,7 +21,7 @@ public class FileUtility {
     private final BitSet requestedChunks;
     private final long timeOut;
 
-    FileUtility (int peerId, PropertyFileUtility conf) {
+    public FileUtility (int peerId, PropertyFileUtility conf) {
         this (peerId,
                 conf.getStringValue("FileName"),
                 conf.getIntegerValue("FileSize"),
