@@ -1,6 +1,7 @@
 package networks.impl;
 
 import networks.models.RemotePeerInfo;
+import networks.utilities.LogHelper;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -19,8 +20,7 @@ public class StartRemotePeers {
             //todo: should I send user.dir here to startPeer or directly call?
             startPeer(currPeer);
         }
-        //todo: log that all the peers have startred
-        System.out.println("All peers have started");
+        LogHelper.getLogger().info("All peers have started");
     }
 
     public static void startPeer(RemotePeerInfo remotePeer) {
@@ -28,8 +28,7 @@ public class StartRemotePeers {
         try {
             Runtime.getRuntime().exec ("ssh " + remotePeer.peerAddress + " cd " + currPath + "; java networks.peerProcess " + remotePeer.peerId);
         } catch (IOException e) {
-            //todo: log this
-            e.printStackTrace();
+            LogHelper.getLogger().warning(e);
         }
 
     }

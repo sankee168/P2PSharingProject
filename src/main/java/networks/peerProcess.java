@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 
-/**
- * Created by sank on 4/20/16.
- */
 public class peerProcess {
     public static void main (String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
@@ -41,20 +38,6 @@ public class peerProcess {
                 LogHelper.getLogger().conf ("Read configuration for peer: " + peerId);
                 System.out.println("Read configuration for peer : " + peerId);
             }
-//            for (RemotePeerInfo peer : peerInfo.getPeerInfo()) {
-//                if (peerId == peer.getPeerId()) {
-//                    address = peer.getPeerAddress();
-//                    port = peer.getPort();
-//                    hasFile = peer.hasFile();
-//                    // A peer connects only to the previously defined peers,
-//                    // therefore I can stop parsing here.
-//                    break;
-//                }
-//                else {
-//                    peersToConnectTo.add (peer);
-//                    LogHelper.getLogger().conf ("Read configuration for peer: " + peer);
-//                }
-//            }
         }
 
         Process peerProc = new Process(peerId, address, port, hasFile, peerImplementation.getAllPeerInfo(), commProp);

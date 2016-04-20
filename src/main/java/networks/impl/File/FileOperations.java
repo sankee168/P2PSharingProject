@@ -9,10 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by sank on 4/20/16.
- */
-//todo: need to edit this file completely
 public class FileOperations {
 
     private File file;
@@ -22,13 +18,13 @@ public class FileOperations {
         this.chunksDir = chunksDir;
     }
 
-    public void splitFile(int pieceSize){
+    public void splitFile(int chunkSize){
 
         FileInputStream inputStream;
         String newFileName;
-        FileOutputStream filePart;
+        FileOutputStream fileChunk;
         int fileSize = (int) file.length();
-        int nChunks = 0, read = 0, readLength = pieceSize;
+        int nChunks = 0, read = 0, readLength = chunkSize;
         byte[] byteChunkPart;
         try {
             inputStream = new FileInputStream(file);
@@ -43,26 +39,25 @@ public class FileOperations {
                 nChunks++;
                 newFileName = file.getParent() + "/parts/" +
                         file.getName() + "/" + Integer.toString(nChunks - 1);
-                filePart = new FileOutputStream(new File(newFileName));
-                filePart.write(byteChunkPart);
-                filePart.flush();
-                filePart.close();
+                fileChunk = new FileOutputStream(new File(newFileName));
+                fileChunk.write(byteChunkPart);
+                fileChunk.flush();
+                fileChunk.close();
             }
             inputStream.close();
         } catch (IOException e) {
-            //todo: need to include warning
             LogHelper.getLogger().warning(e);
         }
     }
 
-    public void mergeFile(int numParts) {
+    public void mergeFile(int numChunks) {
         File ofile = file;
         FileOutputStream fos;
         FileInputStream fis;
         byte[] fileBytes;
         int bytesRead = 0;
         List<File> list = new ArrayList<File>();
-        for (int i = 0; i < numParts; i++) {
+        for (int i = 0; i < numChunks; i++) {
             list.add(new File(chunksDir.getPath() + "/" + i));
         }
         try {
@@ -75,9 +70,7 @@ public class FileOperations {
                 assert (bytesRead == (int) file.length());
                 fos.write(fileBytes);
                 fos.flush();
-                fileBytes = null;
                 fis.close();
-                fis = null;
             }
             fos.close();
         } catch (Exception exception) {

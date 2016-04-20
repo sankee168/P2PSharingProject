@@ -5,10 +5,6 @@ import lombok.Data;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Created by sank on 4/19/16.
- */
-
 @Data
 public class RemotePeerInfo {
 
@@ -58,12 +54,4 @@ public class RemotePeerInfo {
                 .append (" address:").append (peerAddress)
                 .append(" port: ").append(peerPort).toString();
     }
-
-//    public static Collection<Integer> toIdSet (Collection<RemotePeerInfo> peers) {
-//        Set<Integer> ids = new HashSet<>();
-//        for (RemotePeerInfo peer : peers) {
-//            ids.add(peer.getPeerId());
-//        }
-//        return ids;
-//    }
 }

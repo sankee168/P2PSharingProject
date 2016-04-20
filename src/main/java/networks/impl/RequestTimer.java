@@ -12,9 +12,6 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.TimerTask;
 
-/**
- * Created by sank on 4/20/16.
- */
 public class RequestTimer extends TimerTask{
     private final Request request;
     private final FileUtility fileManager;
@@ -42,7 +39,7 @@ public class RequestTimer extends TimerTask{
             try {
                 outStream.writeObject(message);
             } catch (IOException e) {
-                e.printStackTrace();
+                LogHelper.getLogger().warning("IOEXception Occurred");
             }
 
         }

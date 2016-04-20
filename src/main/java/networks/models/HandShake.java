@@ -13,7 +13,6 @@ import java.nio.ByteOrder;
  * Created by sank on 4/19/16.
  */
 
-//todo:
 @Data
 public class HandShake {
     private final byte[] zeroBits = new byte[HandShakeHeader.ZERO_BIT_SIZE];
@@ -44,9 +43,6 @@ public class HandShake {
         outputStream.write(peerIdBits, 0, peerIdBits.length);
     }
 
-    /*
-    *   TODO: Create Custom Exception class and call it in these if-statements
-    */
     public void read(DataInputStream inputStream) throws IOException {
         byte[] protocolId = new byte[HandShakeHeader.headerName.length()];
         if(inputStream.read(protocolId,0,protocolId.length) < protocolId.length){

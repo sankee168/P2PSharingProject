@@ -42,7 +42,6 @@ public class PeerManager implements Runnable {
                 }
 
                 synchronized (this) {
-                    // Randomly shuffle the remaining neighbors, and select some to optimistically unchoke
                     if (!chokedNeighbors.isEmpty()) {
                         Collections.shuffle(chokedNeighbors);
                         optmisticallyUnchokedPeers.clear();
@@ -68,7 +67,7 @@ public class PeerManager implements Runnable {
     private final EventLogger eventLogger;
     private final List<RemotePeerInfo> peers = new ArrayList();
     private final Collection<RemotePeerInfo> preferredPeers = new HashSet<RemotePeerInfo>();
-    private final ChokeUtil optUnchoker;
+    private final ChokeUtil chokeUtil;
     private final Collection<PeerEvents> listeners = new LinkedList<PeerEvents>();
     private final AtomicBoolean randomlySelectPreferred = new AtomicBoolean(false);
 
@@ -78,7 +77,7 @@ public class PeerManager implements Runnable {
                 conf.getStringValue(Constants.CommonConfig.numberOfPreferredNeighbours));
         unchokingInterval = Integer.parseInt(
                 conf.getStringValue(Constants.CommonConfig.unChokingInterval)) * 1000;
-        optUnchoker = new ChokeUtil(conf);
+        chokeUtil = new ChokeUtil(conf);
         this.bitmapsize = bitmapsize;
         eventLogger = new EventLogger(peerId);
     }
@@ -127,7 +126,7 @@ public class PeerManager implements Runnable {
     synchronized boolean canUploadToPeer(int peerId) {
         RemotePeerInfo peerInfo = new RemotePeerInfo(peerId);
         return (preferredPeers.contains(peerInfo) ||
-                optUnchoker.optmisticallyUnchokedPeers.contains(peerInfo));
+                chokeUtil.optmisticallyUnchokedPeers.contains(peerInfo));
     }
 
     synchronized void fileCompleted() {
@@ -190,7 +189,7 @@ public class PeerManager implements Runnable {
 
     public void run() {
 
-        optUnchoker.start();
+        chokeUtil.start();
 
         while (true) {
             try {
@@ -258,7 +257,7 @@ public class PeerManager implements Runnable {
             }
 
             if (optUnchokablePeers != null) {
-                optUnchoker.setChokedNeighbors(optUnchokablePeers);
+                chokeUtil.setChokedNeighbors(optUnchokablePeers);
             }
         }
 

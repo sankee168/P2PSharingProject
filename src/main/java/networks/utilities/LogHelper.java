@@ -9,14 +9,13 @@ import java.util.logging.*;
 
 public class LogHelper {
     private static final String CONF = "log4j.properties";
-    private static final LogHelper _log = new LogHelper(Logger.getLogger("CNT5106C"));
+    private static final LogHelper log = new LogHelper(Logger.getLogger("CNT5106C"));
 
     static {
         InputStream in = null;
         try {
             in = LogHelper.class.getClassLoader()
                     .getResourceAsStream(CONF);
-//            in = LogHelper.class.getResourceAsStream(CONF);
             LogManager.getLogManager().readConfiguration(in);
         } catch (IOException e) {
             System.err.println(LogHelper.stackTraceToString(e));
@@ -31,10 +30,10 @@ public class LogHelper {
         }
     }
 
-    private final Logger _l;
+    private final Logger logger;
 
     private LogHelper(Logger log) {
-        _l = log;
+        logger = log;
     }
 
     public static void configure(int peerId)
@@ -45,11 +44,11 @@ public class LogHelper {
         Formatter formatter = (Formatter) Class.forName(properties.getProperty("java.util.logging.FileHandler.formatter")).newInstance();
         handler.setFormatter(formatter);
         handler.setLevel(Level.parse(properties.getProperty("java.util.logging.FileHandler.level")));
-        _log._l.addHandler(handler);
+        log.logger.addHandler(handler);
     }
 
     public static LogHelper getLogger() {
-        return _log;
+        return log;
     }
 
     public static String getPeerIdsAsString2(Collection<Integer> peersIDs) {
@@ -81,31 +80,31 @@ public class LogHelper {
     }
 
     public synchronized void conf(String msg) {
-        _l.log(Level.CONFIG, msg);
+        logger.log(Level.CONFIG, msg);
     }
 
     public synchronized void debug(String msg) {
-        _l.log(Level.FINE, msg);
+        logger.log(Level.FINE, msg);
     }
 
     public synchronized void info(String msg) {
-        _l.log(Level.INFO, msg);
+        logger.log(Level.INFO, msg);
     }
 
     public synchronized void severe(String msg) {
-        _l.log(Level.SEVERE, msg);
+        logger.log(Level.SEVERE, msg);
     }
 
     public synchronized void warning(String msg) {
-        _l.log(Level.WARNING, msg);
+        logger.log(Level.WARNING, msg);
     }
 
     public synchronized void severe(Throwable e) {
-        _l.log(Level.SEVERE, stackTraceToString(e));
+        logger.log(Level.SEVERE, stackTraceToString(e));
     }
 
     public synchronized void warning(Throwable e) {
-        _l.log(Level.WARNING, stackTraceToString(e));
+        logger.log(Level.WARNING, stackTraceToString(e));
     }
 
     private static String stackTraceToString(Throwable t) {
