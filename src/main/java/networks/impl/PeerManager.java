@@ -12,8 +12,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
-public class PeerManager implements Runnable{
 @Data
 public class PeerManager implements Runnable {
     class ChokeUtil extends Thread {
@@ -57,7 +55,7 @@ public class PeerManager implements Runnable {
                     eventLogger.changeOfOptimisticallyUnchokedNeighbors(LogHelper.getPeerIdsAsString(optmisticallyUnchokedPeers));
                 }
                 for (PeerEvents listener : listeners) {
-                    listener.unchockedPeers(new RandomUtils().getIds(optmisticallyUnchokedPeers));
+                    listener.unchokedPeers(new RandomUtils().getIds(optmisticallyUnchokedPeers));
                 }
             }
         }
@@ -67,14 +65,14 @@ public class PeerManager implements Runnable {
     private final int unchokingInterval;
     private final int bitmapsize;
     private final EventLogger eventLogger;
-    private final List<RemotePeerInfo> peers = new ArrayList<RemotePeerInfo>();
+    private final List<RemotePeerInfo> peers = new ArrayList();
     private final Collection<RemotePeerInfo> preferredPeers = new HashSet<RemotePeerInfo>();
     private final ChokeUtil optUnchoker;
     private final Collection<PeerEvents> listeners = new LinkedList<PeerEvents>();
     private final AtomicBoolean randomlySelectPreferred = new AtomicBoolean(false);
 
     PeerManager(int peerId, Collection<RemotePeerInfo> peers, int bitmapsize1, PropertyFileUtility conf) {
-        peers.addAll(peers);
+        this.peers.addAll(peers);
         countOfPrefNeighbors = Integer.parseInt(
                 conf.getStringValue(Constants.CommonConfig.numberOfPreferredNeighbours));
         unchokingInterval = Integer.parseInt(
@@ -170,7 +168,7 @@ public class PeerManager implements Runnable {
     }
 
     synchronized private void neighborsCompletedDownload() {
-        for(int i = 0; i < peers.size(); i++) {
+        for (int i = 0; i < peers.size(); i++) {
             if (peers.get(i).receivedParts.cardinality() < bitmapsize) {
                 // at least one neighbor has not completed
                 LogHelper.getLogger().debug("Peer " + peers.get(i).getPeerId() + " has not completed yet");
@@ -227,7 +225,7 @@ public class PeerManager implements Runnable {
 
             synchronized (this) {
                 // Reset downloaded bytes, but buffer them for debugging
-                for(int i = 0; i < peers.size(); i++) {
+                for (int i = 0; i < peers.size(); i++) {
                     RemotePeerInfo currPeer = peers.get(i);
                     downloadedBytes.put(currPeer.getPeerId(), currPeer.getBytesDownloadedFrom().longValue());
                     currPeer.getBytesDownloadedFrom().set(0);
@@ -274,8 +272,8 @@ public class PeerManager implements Runnable {
             Iterator<PeerEvents> iter = listeners.iterator();
             while (iter.hasNext()) {
                 PeerEvents listener = iter.next();
-                listener.chockedPeers(chokedPeersIDs);
-                listener.unchockedPeers(preferredNeighborsIDs);
+                listener.chokedPeers(chokedPeersIDs);
+                listener.unchokedPeers(preferredNeighborsIDs);
             }
             // 6) NOTIFY THE OPTIMISTICALLY UNCHOKER THREAD WITH THE NEW SET OF UNCHOKABLE PEERS
 
