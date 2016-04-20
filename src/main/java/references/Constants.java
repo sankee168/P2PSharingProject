@@ -11,6 +11,13 @@ public class Constants {
         public static final String CHAR_SET = "US-ASCII";
     }
 
-
+    static public class CommonConfig {
+        public static final String numberOfPreferredNeighbours = "NumberOfPreferredNeighbors";
+        public static final String unChokingInterval = "UnchokingInterval";
+        public static final String optimisticUnchokingInterval = "OptimisticUnchokingInterval";
+        public static final String fileName = "FileName";
+        public static final String fileSize = "FileSize";
+        public static final String pieceSize = "PieceSize";
+    }
 
 }
