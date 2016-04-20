@@ -16,6 +16,10 @@ public class HandShake {
     private final byte[] zeroBits = new byte[HandShakeHeader.ZERO_BIT_SIZE];
     private final byte[] peerIdBits;
 
+    public HandShake(){
+        peerIdBits = new byte[HandShakeHeader.PEER_ID_BIT_SIZE];
+    }
+
     public HandShake(byte[] peerId){
         if(peerId.length > HandShakeHeader.PEER_ID_BIT_SIZE){
             throw new IndexOutOfBoundsException("PeerId should have max length" + HandShakeHeader.PEER_ID_BIT_SIZE);
