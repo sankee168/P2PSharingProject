@@ -22,4 +22,8 @@ public class Constants {
         public static final String pieceSize = "PieceSize";
     }
 
+    static public class Files {
+        public static final String peerInfoFile = "PeerInfo.cfg";
+    }
+
 }
