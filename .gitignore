@@ -1,5 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
-
-.idea/*
-
-target/*
+.idea/
+*.iml
+*.iws
+.DS_Store
+log/
+target/
+log*

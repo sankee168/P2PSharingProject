@@ -32,14 +32,11 @@ public class RequestTimer extends TimerTask{
     }
 
     public void run() {
-        if (fileManager.hasChunk(ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt())){
-            ;
-//        System.out.println("agkjshdgajhsfdhgjasfdjhasfgjhdgfasgh");
+        if (fileManager.hasPart(ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt())){
             LogHelper.getLogger().debug("Not rerequesting piece " + ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt()
                     + " to peer " + remotePeerId);
     }
         else {
-            System.out.println("kaushdgakhsfgdkhjasgkdhas");
             LogHelper.getLogger().debug("Rerequesting piece " + ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt()
                     + " to peer " + remotePeerId);
             try {

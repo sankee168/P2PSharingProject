@@ -26,14 +26,10 @@ public class PeerImplementation {
             e.printStackTrace();
         }
         try {
-            StringBuilder sb = new StringBuilder();
             String line = null;
             try {
                 line = br.readLine();
                 while (line != null) {
-//                    sb.append(line);
-//                    sb.append(System.lineSeparator());
-//                    String everything = sb.toString();
                     remotePeerInfoList.add(readRemotePeerInfoFromLine(line));
                     line = br.readLine();
                 }

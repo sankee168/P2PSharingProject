@@ -26,4 +26,8 @@ public class Constants {
         public static final String peerInfoFile = "PeerInfo.cfg";
     }
 
+    static public class Random {
+        public static final int chokingIntervalFactor = 1000;
+    }
+
 }

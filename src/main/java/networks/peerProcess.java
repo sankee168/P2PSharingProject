@@ -25,18 +25,8 @@ public class peerProcess {
         String address = "localhost";
         int port = 6008;
         boolean hasFile = false;
-
-        // Read properties
-        Reader commReader = null;
-        Reader peerReader = null;
         PropertyFileUtility commProp = new PropertyFileUtility("Common.cfg");
-//        PeerInfo peerInfo = new PeerInfo();
         Collection<RemotePeerInfo> peersToConnectTo = new LinkedList<RemotePeerInfo>();
-//        try {
-//            commReader = new FileReader("Common.cfg");
-//            peerReader = new FileReader ("PeerInfo.cfg");
-//            commProp = CommonProperties.read (commReader);
-//            peerInfo.read (peerReader);
         Iterator<RemotePeerInfo> iter = peerImplementation.getAllPeerInfo().iterator();
         while (iter.hasNext()){
             RemotePeerInfo currPeer = iter.next();
