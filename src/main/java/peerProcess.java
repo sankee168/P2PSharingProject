@@ -1,8 +1,6 @@
-import config.PeerInfo;
 import impl.PeerImplementation;
 import models.RemotePeerInfo;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
@@ -29,7 +27,7 @@ public class peerProcess {
         Reader commReader = null;
         Reader peerReader = null;
         Properties commProp = null;
-        PeerInfo peerInfo = new PeerInfo();
+//        PeerInfo peerInfo = new PeerInfo();
         List<RemotePeerInfo> peersToConnect = new LinkedList<RemotePeerInfo>();
         try {
 //            commReader = new FileReader(CommonProperties.CONFIG_FILE_NAME);
