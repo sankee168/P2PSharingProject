@@ -1,9 +1,9 @@
 package impl.File;
 
 import impl.Destination;
+import utilities.PropertyFileUtility;
 
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Properties;
 
@@ -13,18 +13,20 @@ import java.util.Properties;
 public class FileUtility {
 
 
-    private BitSet _receivedParts;
-    private final Collection<FileManagerListener> _listeners = new LinkedList<>();
-    private Destination _destination;
-    private final double _dPartSize;
-    private final int _bitsetSize;
-    private final RequestedParts _partsBeingReq;
+    private BitSet receivedChunks;
+    private final LinkedList<FileEvent> fileEvents = new LinkedList();
+    private Destination destination;
+    private final double chunkSize;
+    private final int bitsetSize;
+    private final BitSet requestedChunks;
+    private final long timeOut;
 
-    FileManager (int peerId, Properties conf) {
-        this (peerId, conf.getProperty (CommonProperties.FileName.toString()),
-                Integer.parseInt(conf.getProperty(CommonProperties.FileSize.toString())),
-                Integer.parseInt(conf.getProperty(CommonProperties.PieceSize.toString())),
-                Integer.parseInt(conf.getProperty(CommonProperties.UnchokingInterval.toString())) * 1000);
+    FileUtility (int peerId, PropertyFileUtility conf) {
+        this (peerId,
+                conf.getStringValue("FileName"),
+                conf.getIntegerValue("FileSize"),
+                conf.getIntegerValue("PieceSize"),
+                conf.getLongValue("UnchokingInterval"));
     }
 
     /**
@@ -34,13 +36,14 @@ public class FileUtility {
      * @param fileSize the size of the file being downloaded
      * @param partSize the maximum size of a part
      */
-    FileManager (int peerId, String fileName, int fileSize, int partSize, long unchokingInterval) {
-        _dPartSize = partSize;
-        _bitsetSize = (int) Math.ceil (fileSize/_dPartSize);
-        LogHelper.getLogger().debug ("File size set to " + fileSize +  "\tPart size set to " + _dPartSize + "\tBitset size set to " + _bitsetSize);
-        _receivedParts = new BitSet (_bitsetSize);
-        _partsBeingReq = new RequestedParts (_bitsetSize, unchokingInterval);
-        _destination = new Destination(peerId, fileName);
+    FileUtility(int peerId, String fileName, int fileSize, int partSize, long unchokingInterval) {
+        chunkSize = partSize;
+        bitsetSize = (int) Math.ceil (fileSize/ chunkSize);
+       // LogHelper.getLogger().debug ("File size set to " + fileSize +  "\tPart size set to " + chunkSize + "\tBitset size set to " + bitsetSize);
+        receivedChunks = new BitSet (bitsetSize);
+        destination = new Destination(peerId, fileName);
+        requestedChunks = new BitSet(bitsetSize);
+        timeOut = unchokingInterval * 2;
     }
 
     /**
@@ -51,18 +54,18 @@ public class FileUtility {
     public synchronized void addPart (int partIdx, byte[] part) {
 
         // TODO: write part on file, at the specified directroy
-        final boolean isNewPiece = !_receivedParts.get(partIdx);
-        _receivedParts.set (partIdx);
+        final boolean isNewPiece = !receivedChunks.get(partIdx);
+        receivedChunks.set (partIdx);
 
         if (isNewPiece) {
-            _destination.writeByteArrayAsFilePart(part, partIdx);
-            for (FileManagerListener listener : _listeners) {
+            destination.writeByteArrayAsFilePart(part, partIdx);
+            for (FileEvent listener : fileEvents) {
                 listener.pieceArrived (partIdx);
             }
         }
         if (isFileCompleted()) {
-            _destination.mergeFile(_receivedParts.cardinality());
-            for (FileManagerListener listener : _listeners) {
+            destination.mergeFile(receivedChunks.cardinality());
+            for (FileEvent listener : fileEvents) {
                 listener.fileCompleted();
             }
         }
@@ -76,15 +79,15 @@ public class FileUtility {
      */
     synchronized int getPartToRequest(BitSet availableParts) {
         availableParts.andNot(getReceivedParts());
-        return _partsBeingReq.getPartToRequest (availableParts);
+        return getNextChunk(availableParts);
     }
 
     public synchronized BitSet getReceivedParts () {
-        return (BitSet) _receivedParts.clone();
+        return (BitSet) receivedChunks.clone();
     }
 
     synchronized public boolean hasPart(int pieceIndex) {
-        return _receivedParts.get(pieceIndex);
+        return receivedChunks.get(pieceIndex);
     }
 
     /**
@@ -92,43 +95,78 @@ public class FileUtility {
      */
     public synchronized void setAllParts()
     {
-        for (int i = 0; i < _bitsetSize; i++) {
-            _receivedParts.set(i, true);
+        for (int i = 0; i < bitsetSize; i++) {
+            receivedChunks.set(i, true);
         }
-        LogHelper.getLogger().debug("Received parts set to: " + _receivedParts.toString());
+       // LogHelper.getLogger().debug("Received parts set to: " + receivedChunks.toString());
     }
 
     public synchronized int getNumberOfReceivedParts() {
-        return _receivedParts.cardinality();
+        return receivedChunks.cardinality();
     }
 
     byte[] getPiece (int partId) {
-        byte[] piece = _destination.getPartAsByteArray(partId);
+        byte[] piece = destination.getPartAsByteArray(partId);
         return piece;
     }
 
-    public void registerListener (FileManagerListener listener) {
-        _listeners.add (listener);
+    public void registerListener (FileEvent listener) {
+        fileEvents.add (listener);
     }
 
     public void splitFile(){
-        _destination.splitFile((int) _dPartSize);
+        destination.splitFile((int) chunkSize);
     }
 
     public byte[][] getAllPieces(){
-        return _destination.getAllPartsAsByteArrays();
+        return destination.getAllPartsAsByteArrays();
     }
 
     public int getBitmapSize() {
-        return _bitsetSize;
+        return bitsetSize;
     }
 
     private boolean isFileCompleted() {
-        for (int i = 0; i < _bitsetSize; i++) {
-            if (!_receivedParts.get(i)) {
+        for (int i = 0; i < bitsetSize; i++) {
+            if (!receivedChunks.get(i)) {
                 return false;
             }
         }
         return true;
+    }
+
+    synchronized int getNextChunk(BitSet requestabableParts) {
+        requestabableParts.andNot(requestedChunks);
+        if (!requestabableParts.isEmpty()) {
+            final int partId = pickRandomSetIndexFromBitSet(requestabableParts);
+            requestedChunks.set(partId);
+
+            // Make the part requestable again in _timeoutInMillis
+            new java.util.Timer().schedule(
+                    new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            synchronized (requestedChunks) {
+                                requestedChunks.clear(partId);
+                                //LogHelper.getLogger().debug("clearing requested parts for pert " + partId);
+                            }
+                        }
+                    },
+                    timeOut
+            );
+            return partId;
+        }
+        return -1;
+    }
+
+    public int pickRandomSetIndexFromBitSet (BitSet bitset) {
+        if (bitset.isEmpty()) {
+            throw new RuntimeException ("The bitset is empty, cannot find a set element");
+        }
+        // Generate list of set elements in the format that follows: { 2, 4, 5, ...}
+        String set = bitset.toString();
+        // Separate the elements, and pick one randomly
+        String[] indexes = set.substring(1, set.length()-1).split(",");
+        return Integer.parseInt(indexes[(int)(Math.random()*(indexes.length-1))].trim());
     }
 }
