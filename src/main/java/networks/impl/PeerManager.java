@@ -205,7 +205,6 @@ public class PeerManager implements Runnable{
             List<RemotePeerInfo> interestedPeers = getInterestedPeers();
             if (_randomlySelectPreferred.get()) {
                 // Randomly shuffle the neighbors
-                System.out.println("asdjhgajshgdasjgdsajhgd");
                 LogHelper.getLogger().debug("selecting preferred peers randomly");
                 Collections.shuffle(interestedPeers);
             }
@@ -240,8 +239,7 @@ public class PeerManager implements Runnable{
                 _preferredPeers.clear();
                 _preferredPeers.addAll(interestedPeers.subList(0, Math.min(_numberOfPreferredNeighbors, interestedPeers.size())));
                 if (_preferredPeers.size() > 0) {
-//                    _eventLogger.changeOfPrefereedNeighbors(LogHelper.getPeerIdsAsString (_preferredPeers));
-                    System.out.println("aksgdjashgdjkagmsdjasgjd");
+                    _eventLogger.changeOfPrefereedNeighbors(LogHelper.getPeerIdsAsString (_preferredPeers));
                 }
 
                 // 3) SELECT ALLE THE INTERESTED AND UNINTERESTED PEERS, REMOVE THE PREFERRED. THE RESULTS ARE THE CHOKED PEERS

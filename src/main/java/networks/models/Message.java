@@ -21,7 +21,7 @@ public class Message {
         this (type, null);
     }
 
-    protected Message (MessageType messageType1, byte[] payload1) {
+    protected Message (MessageType messageType1, byte[] payload) {
         length = (payload == null ? 0 : payload.length)
                 + 1; // for the _type
         messageType = messageType1;

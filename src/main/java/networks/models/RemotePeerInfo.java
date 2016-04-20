@@ -34,30 +34,30 @@ public class RemotePeerInfo {
         interested = false;
     }
 
-//    @Override
-//    public boolean equals (Object obj) {
-//        if (obj == null) {
-//            return false;
-//        }
-//        if (obj instanceof RemotePeerInfo) {
-//            return (((RemotePeerInfo) obj).peerId.equals (peerId));
-//        }
-//        return false;
-//    }
+    @Override
+    public boolean equals (Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof RemotePeerInfo) {
+            return (((RemotePeerInfo) obj).peerId == (peerId));
+        }
+        return false;
+    }
 
-//    @Override
-//    public int hashCode() {
-//        int hash = 3;
-//        hash = 97 * hash + Objects.hashCode(this._peerId);
-//        return hash;
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return new StringBuilder (_peerId)
-//                .append (" address:").append (_peerAddress)
-//                .append(" port: ").append(_peerPort).toString();
-//    }
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 97 * hash + Objects.hashCode(this.peerId);
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder (peerId)
+                .append (" address:").append (peerAddress)
+                .append(" port: ").append(peerPort).toString();
+    }
 
 //    public static Collection<Integer> toIdSet (Collection<RemotePeerInfo> peers) {
 //        Set<Integer> ids = new HashSet<>();
