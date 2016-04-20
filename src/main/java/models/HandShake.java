@@ -1,5 +1,6 @@
 package models;
 
+import lombok.Data;
 import references.Constants.HandShakeHeader;
 
 import java.io.DataInputStream;
@@ -12,6 +13,7 @@ import java.nio.charset.Charset;
  */
 
 //todo:
+@Data
 public class HandShake {
     private final byte[] zeroBits = new byte[HandShakeHeader.ZERO_BIT_SIZE];
     private final byte[] peerIdBits;
