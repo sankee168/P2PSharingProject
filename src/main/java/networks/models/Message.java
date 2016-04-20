@@ -25,7 +25,7 @@ public class Message {
         length = (payload == null ? 0 : payload.length)
                 + 1; // for the _type
         messageType = messageType1;
-        payload = payload;
+        this.payload = payload;
     }
 
     //getType is replaced by getMessageType
