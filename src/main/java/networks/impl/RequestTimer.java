@@ -32,7 +32,7 @@ public class RequestTimer extends TimerTask{
     }
 
     public void run() {
-        if (fileManager.hasPart(ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt())){
+        if (fileManager.hasChunk(ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt())){
             ;
 //        System.out.println("agkjshdgajhsfdhgjasfdjhasfgjhdgfasgh");
             LogHelper.getLogger().debug("Not rerequesting piece " + ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt()

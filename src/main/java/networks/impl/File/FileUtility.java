@@ -6,12 +6,10 @@ import networks.utilities.PropertyFileUtility;
 
 import java.util.BitSet;
 import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 
-/**
- * Created by mallem on 4/20/16.
- */
 public class FileUtility {
-
 
     private BitSet receivedChunks;
     private final LinkedList<FileEvent> fileEvents = new LinkedList();
@@ -29,13 +27,7 @@ public class FileUtility {
                 conf.getLongValue("UnchokingInterval"));
     }
 
-    /**
-     *
-     * @param peerId the id of this peer
-     * @param fileName the file being downloaded
-     * @param fileSize the size of the file being downloaded
-     * @param partSize the maximum size of a part
-     */
+
     FileUtility(int peerId, String fileName, int fileSize, int partSize, long unchokingInterval) {
         chunkSize = partSize;
         bitsetSize = (int) Math.ceil (fileSize/ chunkSize);
@@ -46,14 +38,9 @@ public class FileUtility {
         timeOut = unchokingInterval * 2;
     }
 
-    /**
-     *
-     * @param partIdx
-     * @param part
-     */
-    public synchronized void addPart (int partIdx, byte[] part) {
 
-        // TODO: write part on file, at the specified directroy
+    public synchronized void addChunk(int partIdx, byte[] part) {
+
         final boolean isNewPiece = !receivedChunks.get(partIdx);
         receivedChunks.set (partIdx);
 
@@ -71,47 +58,39 @@ public class FileUtility {
         }
     }
 
-    /**
-     * @param availableParts parts that are available at the remote peer
-     * @return the ID of the part to request, if any, or a negative number in
-     * case all the missing parts are already being requested or the file is
-     * complete.
-     */
-    public synchronized int getPartToRequest(BitSet availableParts) {
-        availableParts.andNot(getReceivedParts());
+
+    public synchronized int getChunkToRequest(BitSet availableParts) {
+        availableParts.andNot(getReceivedChunks());
         return getNextChunk(availableParts);
     }
 
-    public synchronized BitSet getReceivedParts () {
+    public synchronized BitSet getReceivedChunks() {
         return (BitSet) receivedChunks.clone();
     }
 
-    synchronized public boolean hasPart(int pieceIndex) {
+    synchronized public boolean hasChunk(int pieceIndex) {
         return receivedChunks.get(pieceIndex);
     }
 
-    /**
-     * Set all parts as received.
-     */
-    public synchronized void setAllParts()
+    public synchronized void setAllChunks()
     {
         for (int i = 0; i < bitsetSize; i++) {
             receivedChunks.set(i, true);
         }
-        LogHelper.getLogger().debug("Received parts set to: " + receivedChunks.toString());
+        LogHelper.getLogger().debug("Received chunks set to: " + receivedChunks.toString());
     }
 
-    public synchronized int getNumberOfReceivedParts() {
+    public synchronized int getNumberOfReceivedChunks() {
         return receivedChunks.cardinality();
     }
 
-    public byte[] getPiece (int partId) {
-        byte[] piece = destination.getPartAsByteArray(partId);
-        return piece;
+    public byte[] getChunk(int chunkId) {
+        byte[] chunk = destination.getPartAsByteArray(chunkId);
+        return chunk;
     }
 
-    public void registerListener (FileEvent listener) {
-        fileEvents.add (listener);
+    public void registerEvent(FileEvent event) {
+        fileEvents.add (event);
     }
 
     public void splitFile(){
@@ -135,20 +114,18 @@ public class FileUtility {
         return true;
     }
 
-    synchronized int getNextChunk(BitSet requestabableParts) {
-        requestabableParts.andNot(requestedChunks);
-        if (!requestabableParts.isEmpty()) {
-            final int partId = pickRandomSetIndexFromBitSet(requestabableParts);
+    synchronized int getNextChunk(BitSet requestChunk) {
+        requestChunk.andNot(requestedChunks);
+        if (!requestChunk.isEmpty()) {
+            final int partId = pickRandomSetIndexFromBitSet(requestChunk);
             requestedChunks.set(partId);
 
-            // Make the part requestable again in _timeoutInMillis
-            new java.util.Timer().schedule(
-                    new java.util.TimerTask() {
+            new Timer().schedule(
+                    new TimerTask() {
                         @Override
                         public void run() {
                             synchronized (requestedChunks) {
                                 requestedChunks.clear(partId);
-                                LogHelper.getLogger().debug("clearing requested parts for pert " + partId);
                             }
                         }
                     },
@@ -163,9 +140,7 @@ public class FileUtility {
         if (bitset.isEmpty()) {
             throw new RuntimeException ("The bitset is empty, cannot find a set element");
         }
-        // Generate list of set elements in the format that follows: { 2, 4, 5, ...}
         String set = bitset.toString();
-        // Separate the elements, and pick one randomly
         String[] indexes = set.substring(1, set.length()-1).split(",");
         return Integer.parseInt(indexes[(int)(Math.random()*(indexes.length-1))].trim());
     }

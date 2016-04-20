@@ -10,30 +10,27 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.BitSet;
 
-/**
- * Created by mallem on 4/20/16.
- */
 public class MessageManager {
 
-    private boolean chokedByRemotePeer;
+    private boolean isChoked;
     private final int remotePeerId;
     private final FileUtility fileUtil;
     private final PeerManager peerMgr;
     private final EventLogger eventLogger;
 
 
-    MessageManager(int remotePeerId, FileUtility fileMgr, PeerManager peerMgr, EventLogger eventLogger1) {
-        chokedByRemotePeer = true;
-        fileUtil = fileMgr;
+    MessageManager(int remotePeerId, FileUtility fileUtil, PeerManager peerMgr, EventLogger eventLogger) {
+        isChoked = true;
+        this.fileUtil = fileUtil;
         this.peerMgr = peerMgr;
         this.remotePeerId = remotePeerId;
-        eventLogger = eventLogger1;
+        this.eventLogger = eventLogger;
     }
 
 
 
-    public Message handle(HandShake handshake) {
-        BitSet bitset = fileUtil.getReceivedParts();
+    public Message handle() {
+        BitSet bitset = fileUtil.getReceivedChunks();
         if (!bitset.isEmpty()) {
             return (new Bitfield(bitset));
         }
@@ -43,14 +40,14 @@ public class MessageManager {
     public Message handle(Message msg) {
         switch (msg.getMessageType()) {
             case Choke: {
-                chokedByRemotePeer = true;
+                isChoked = true;
                 eventLogger.chokeMessage(remotePeerId);
                 return null;
             }
             case Unchoke: {
-                chokedByRemotePeer = false;
+                isChoked = false;
                 eventLogger.unchokeMessage(remotePeerId);
-                return requestPiece();
+                return requestChunk();
             }
             case Interested: {
                 eventLogger.interestedMessage(remotePeerId);
@@ -68,7 +65,7 @@ public class MessageManager {
                 eventLogger.haveMessage(remotePeerId, pieceId);
                 peerMgr.haveArrived(remotePeerId, pieceId);
 
-                if (fileUtil.getReceivedParts().get(pieceId)) {
+                if (fileUtil.getReceivedChunks().get(pieceId)) {
                     return new NotInterested();
                 } else {
                     return new Interested();
@@ -79,7 +76,7 @@ public class MessageManager {
                 BitSet bitset = bitfield.getBitSet();
                 peerMgr.bitfieldArrived(remotePeerId, bitset);
 
-                bitset.andNot(fileUtil.getReceivedParts());
+                bitset.andNot(fileUtil.getReceivedChunks());
                 if (bitset.isEmpty()) {
                     return new NotInterested();
                 } else {
@@ -88,9 +85,8 @@ public class MessageManager {
                 }
             }
             case Request: {
-                Request request = (Request) msg;
                 if (peerMgr.canUploadToPeer(remotePeerId)) {
-                    byte[] piece = fileUtil.getPiece(ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
+                    byte[] piece = fileUtil.getChunk(ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
                             .order(ByteOrder.BIG_ENDIAN).getInt());
                     if (piece != null) {
                         return new Piece(ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
@@ -101,27 +97,27 @@ public class MessageManager {
             }
             case Piece: {
                 Piece piece = (Piece) msg;
-                fileUtil.addPart(ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
+                fileUtil.addChunk(ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
                         .order(ByteOrder.BIG_ENDIAN).getInt(), piece.getContent());
                 peerMgr.receivedPart(remotePeerId, piece.getContent().length);
                 eventLogger.pieceDownloadedMessage(remotePeerId, ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
-                        .order(ByteOrder.BIG_ENDIAN).getInt(), fileUtil.getNumberOfReceivedParts());
-                return requestPiece();
+                        .order(ByteOrder.BIG_ENDIAN).getInt(), fileUtil.getNumberOfReceivedChunks());
+                return requestChunk();
             }
         }
 
         return null;
     }
 
-    private Message requestPiece() {
-        if (!chokedByRemotePeer) {
-            int partId = fileUtil.getPartToRequest(peerMgr.getReceivedParts(remotePeerId));
-            if (partId >= 0) {
-                LogHelper.getLogger().debug("Requesting part " + partId + " to " + remotePeerId);
-                return new Request(ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN).putInt(partId).array());
+    private Message requestChunk() {
+        if (!isChoked) {
+            int chunkId = fileUtil.getChunkToRequest(peerMgr.getReceivedParts(remotePeerId));
+            if (chunkId >= 0) {
+                LogHelper.getLogger().debug("Requesting chunk " + chunkId + " to " + remotePeerId);
+                return new Request(ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN).putInt(chunkId).array());
             }
             else {
-                LogHelper.getLogger().debug("No parts can be requested to " + remotePeerId);
+                LogHelper.getLogger().debug("No chunks can be requested to " + remotePeerId);
             }
         }
         return null;

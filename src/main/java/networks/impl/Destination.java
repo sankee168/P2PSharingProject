@@ -26,12 +26,6 @@ public class Destination {
     }
 
     public byte[][] getAllPartsAsByteArrays() {
-//        File[] files = _partsDir.listFiles(new FilenameFilter() {
-//            @Override
-//            public boolean accept(File dir, String name) {
-//                return true;
-//            }
-//        });
         File[] files = _partsDir.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return true;

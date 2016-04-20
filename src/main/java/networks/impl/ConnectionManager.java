@@ -9,7 +9,6 @@ import networks.utilities.LogHelper;
 import networks.utilities.PayloadReader;
 import networks.utilities.PayloadWriter;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -18,22 +17,17 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Created by mallem on 4/19/16.
- */
 public class ConnectionManager implements Runnable {
 
-    private static final int PEER_ID_UNSET = -1;
-
-    private final int _localPeerId;
-    private final Socket _socket;
-    private final PayloadWriter _out;
-    private final FileUtility _fileMgr;
-    private final PeerManager _peerMgr;
-    private final boolean _isConnectingPeer;
-    private final int _expectedRemotePeerId;
-    private final AtomicInteger _remotePeerId;
-    private final BlockingQueue<Message> _queue = new LinkedBlockingQueue<Message>();
+    private int localPeerId;
+    private Socket socket;
+    private PayloadWriter payloadWriter;
+    private FileUtility fileUtil;
+    private PeerManager peerManager;
+    private boolean isConnecting;
+    private int expectedPeerId;
+    private AtomicInteger remotePeerId;
+    private BlockingQueue<Message> queue = new LinkedBlockingQueue<Message>();
 
     public ConnectionManager(int localPeerId, Socket socket, FileUtility fileMgr, PeerManager peerMgr)
             throws IOException {
@@ -42,47 +36,47 @@ public class ConnectionManager implements Runnable {
 
     public ConnectionManager(int localPeerId, boolean isConnectingPeer, int expectedRemotePeerId,
                              Socket socket, FileUtility fileMgr, PeerManager peerMgr) throws IOException {
-        _socket = socket;
-        _localPeerId = localPeerId;
-        _isConnectingPeer = isConnectingPeer;
-        _expectedRemotePeerId = expectedRemotePeerId;
-        _fileMgr = fileMgr;
-        _peerMgr = peerMgr;
-        _out = new PayloadWriter(_socket.getOutputStream());
-        _remotePeerId = new AtomicInteger(PEER_ID_UNSET);
+        this.socket = socket;
+        this.localPeerId = localPeerId;
+        this.isConnecting = isConnectingPeer;
+        this.expectedPeerId = expectedRemotePeerId;
+        this.fileUtil = fileMgr;
+        this.peerManager = peerMgr;
+        this.payloadWriter = new PayloadWriter(this.socket.getOutputStream());
+        this.remotePeerId = new AtomicInteger(-1);
     }
 
     public int getRemotePeerId() {
-        return _remotePeerId.get();
+        return remotePeerId.get();
     }
 
     public void run() {
         new Thread() {
 
-            private boolean _remotePeerIsChoked = true;
+            private boolean isRemoteChoked = true;
 
             @Override
             public void run() {
-                Thread.currentThread().setName(getClass().getName() + "-" + _remotePeerId + "-sending thread");
+                Thread.currentThread().setName(getClass().getName() + "-" + remotePeerId + "-sending thread");
                 while (true) {
                     try {
-                        final Message message = _queue.take();
+                        final Message message = queue.take();
                         if (message == null) {
                             continue;
                         }
-                        if (_remotePeerId.get() != PEER_ID_UNSET) {
+                        if (remotePeerId.get() != -1) {
                             switch (message.getMessageType()) {
                                 case Choke: {
-                                    if (!_remotePeerIsChoked) {
-                                        _remotePeerIsChoked = true;
+                                    if (!isRemoteChoked) {
+                                        isRemoteChoked = true;
                                         sendInternal(message);
                                     }
                                     break;
                                 }
 
                                 case Unchoke: {
-                                    if (_remotePeerIsChoked) {
-                                        _remotePeerIsChoked = false;
+                                    if (isRemoteChoked) {
+                                        isRemoteChoked = false;
                                         sendInternal(message);
                                     }
                                     break;
@@ -104,25 +98,25 @@ public class ConnectionManager implements Runnable {
         }.start();
 
         try {
-            final PayloadReader in = new PayloadReader(_socket.getInputStream());
+            final PayloadReader in = new PayloadReader(socket.getInputStream());
 
             // Send handshake
-            _out.writeObject(new HandShake(_localPeerId));
+            payloadWriter.writeObject(new HandShake(localPeerId));
 
             // Receive and check handshake
             HandShake rcvdHandshake = (HandShake) in.readObject();
-            _remotePeerId.set(ByteBuffer.wrap(rcvdHandshake.getPeerIdBits()).order(ByteOrder.BIG_ENDIAN).getInt());
-            Thread.currentThread().setName(getClass().getName() + "-" + _remotePeerId.get());
-            final EventLogger eventLogger = new EventLogger(_localPeerId);
-            final MessageManager msgHandler = new MessageManager(_remotePeerId.get(), _fileMgr, _peerMgr, eventLogger);
-            if (_isConnectingPeer && (_remotePeerId.get() != _expectedRemotePeerId)) {
-                throw new Exception("Remote peer id " + _remotePeerId + " does not match with the expected id: " + _expectedRemotePeerId);
+            remotePeerId.set(ByteBuffer.wrap(rcvdHandshake.getPeerIdBits()).order(ByteOrder.BIG_ENDIAN).getInt());
+            Thread.currentThread().setName(getClass().getName() + "-" + remotePeerId.get());
+            final EventLogger eventLogger = new EventLogger(localPeerId);
+            final MessageManager msgHandler = new MessageManager(remotePeerId.get(), fileUtil, peerManager, eventLogger);
+            if (isConnecting && (remotePeerId.get() != expectedPeerId)) {
+                throw new Exception("Remote peer id " + remotePeerId + " does not match with the expected id: " + expectedPeerId);
             }
 
             // Handshake successful
-            eventLogger.peerConnection(_remotePeerId.get(), _isConnectingPeer);
+            eventLogger.peerConnection(remotePeerId.get(), isConnecting);
 
-            sendInternal(msgHandler.handle(rcvdHandshake));
+            sendInternal(msgHandler.handle());
             while (true) {
                 try {
                     sendInternal(msgHandler.handle((Message) in.readObject()));
@@ -135,18 +129,16 @@ public class ConnectionManager implements Runnable {
             LogHelper.getLogger().warning(ex);
         } finally {
             try {
-                _socket.close();
+                socket.close();
             } catch (Exception e) {
             }
         }
-        LogHelper.getLogger().warning(Thread.currentThread().getName()
-                + " terminating, messages will no longer be accepted.");
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof ConnectionManager) {
-            return ((ConnectionManager) obj)._remotePeerId == _remotePeerId;
+            return ((ConnectionManager) obj).remotePeerId == remotePeerId;
         }
         return false;
     }
@@ -154,22 +146,22 @@ public class ConnectionManager implements Runnable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 41 * hash + _localPeerId;
+        hash = 41 * hash + localPeerId;
         return hash;
     }
 
     public void send(final Message message) {
-        _queue.add(message);
+        queue.add(message);
     }
 
     private synchronized void sendInternal(Message message) throws IOException {
         if (message != null) {
-            _out.writeObject(message);
+            payloadWriter.writeObject(message);
             switch (message.getMessageType()) {
                 case Request: {
                     new java.util.Timer().schedule(
-                            new RequestTimer((Request) message, _fileMgr, _out, message, _remotePeerId.get()),
-                            _peerMgr.getUnchokingInterval() * 2
+                            new RequestTimer((Request) message, fileUtil, payloadWriter, message, remotePeerId.get()),
+                            peerManager.getUnchokingInterval() * 2
                     );
                 }
             }

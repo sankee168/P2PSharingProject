@@ -54,14 +54,14 @@ public class Process implements Runnable, FileEvent, PeerEvents{
     }
 
     public void init() {
-        _fileMgr.registerListener(this);
+        _fileMgr.registerEvent(this);
         _peerMgr.registerListener(this);
 
         if (_hasFile) {
 //            System.out.println("Splitting File");
             LogHelper.getLogger().debug("Spltting file");
             _fileMgr.splitFile();
-            _fileMgr.setAllParts();
+            _fileMgr.setAllChunks();
         }
         else {
 //            System.out.println("Peer does not have file");
@@ -175,7 +175,7 @@ public class Process implements Runnable, FileEvent, PeerEvents{
     public synchronized void pieceArrived(int partIdx) {
         for (ConnectionManager connHanlder : _connHandlers) {
             connHanlder.send(new Have(ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN).putInt(partIdx).array()));
-            if (!_peerMgr.isInteresting(connHanlder.getRemotePeerId(), _fileMgr.getReceivedParts())) {
+            if (!_peerMgr.isInteresting(connHanlder.getRemotePeerId(), _fileMgr.getReceivedChunks())) {
                 connHanlder.send(new NotInterested());
             }
         }
@@ -200,7 +200,7 @@ public class Process implements Runnable, FileEvent, PeerEvents{
         return true;
     }
 
-    public synchronized void chockedPeers(Collection<Integer> chokedPeersIds) {
+    public synchronized void chokedPeers(Collection<Integer> chokedPeersIds) {
         for (ConnectionManager ch : _connHandlers) {
             if (chokedPeersIds.contains(ch.getRemotePeerId())) {
 //                System.out.println("akjhsdjasgdhjasgd");
@@ -210,7 +210,7 @@ public class Process implements Runnable, FileEvent, PeerEvents{
         }
     }
 
-    public synchronized void unchockedPeers(Collection<Integer> unchokedPeersIds) {
+    public synchronized void unchokedPeers(Collection<Integer> unchokedPeersIds) {
         for (ConnectionManager ch : _connHandlers) {
             if (unchokedPeersIds.contains(ch.getRemotePeerId())) {
 //                System.out.println("akjshgdahjsgfdhjafsjhgdfash");

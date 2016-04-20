@@ -57,7 +57,7 @@ public class PeerManager implements Runnable{
                     _eventLogger.changeOfOptimisticallyUnchokedNeighbors(LogHelper.getPeerIdsAsString (_optmisticallyUnchokedPeers));
                 }
                 for (PeerEvents listener : _listeners) {
-                    listener.unchockedPeers(new RandomUtils().getIds(_optmisticallyUnchokedPeers));
+                    listener.unchokedPeers(new RandomUtils().getIds(_optmisticallyUnchokedPeers));
                 }
             }
         }
@@ -276,8 +276,8 @@ public class PeerManager implements Runnable{
             // 5) NOTIFY PROCESS, IT WILL TAKE CARE OF SENDING CHOKE AND UNCHOKE MESSAGES
 
             for (PeerEvents listener : _listeners) {
-                listener.chockedPeers(chokedPeersIDs);
-                listener.unchockedPeers(preferredNeighborsIDs);
+                listener.chokedPeers(chokedPeersIDs);
+                listener.unchokedPeers(preferredNeighborsIDs);
             }
 
             // 6) NOTIFY THE OPTIMISTICALLY UNCHOKER THREAD WITH THE NEW SET OF UNCHOKABLE PEERS
