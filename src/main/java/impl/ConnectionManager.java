@@ -51,7 +51,6 @@ public class ConnectionManager implements Runnable {
         return remotePeerId.get();
     }
 
-    @Override
     public void run() {
         new Thread() {
 
@@ -111,34 +110,34 @@ public class ConnectionManager implements Runnable {
             /* TODO: I think this shud work */
             remotePeerId.set(localPeerId);
             Thread.currentThread().setName(getClass().getName() + "-" + remotePeerId.get());
-            final EventLogger eventLogger = new EventLogger(localPeerId);
-            final MessageHandler msgHandler = new MessageHandler(remotePeerId.get(), fileUtility, peerMgr, eventLogger);
+            //final EventLogger eventLogger = new EventLogger(localPeerId);
+            final MessageManager msgHandler = new MessageManager(remotePeerId.get(), fileUtility, peerMgr);
             if (isConnectingPeer && (remotePeerId.get() != expectedRemotePeerId)) {
                 throw new Exception("Remote peer id " + remotePeerId + " does not match with the expected id: " + expectedRemotePeerId);
             }
 
             // Handshake successful
-            eventLogger.peerConnection(remotePeerId.get(), isConnectingPeer);
+            //eventLogger.peerConnection(remotePeerId.get(), isConnectingPeer);
 
             sendInternal(msgHandler.handle(rcvdHandshake));
             while (true) {
                 try {
                     sendInternal(msgHandler.handle((Message) in.readObject()));
                 } catch (Exception ex) {
-                    LogHelper.getLogger().warning(ex);
+                    //LogHelper.getLogger().warning(ex);
                     break;
                 }
             }
         } catch (Exception ex) {
-            LogHelper.getLogger().warning(ex);
+            //LogHelper.getLogger().warning(ex);
         } finally {
             try {
                 socket.close();
             } catch (Exception e) {
             }
         }
-        LogHelper.getLogger().warning(Thread.currentThread().getName()
-                + " terminating, messages will no longer be accepted.");
+        //LogHelper.getLogger().warning(Thread.currentThread().getName()
+           //     + " terminating, messages will no longer be accepted.");
     }
 
     @Override

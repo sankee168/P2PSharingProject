@@ -77,7 +77,7 @@ public class FileUtility {
      * case all the missing parts are already being requested or the file is
      * complete.
      */
-    synchronized int getPartToRequest(BitSet availableParts) {
+    public synchronized int getPartToRequest(BitSet availableParts) {
         availableParts.andNot(getReceivedParts());
         return getNextChunk(availableParts);
     }
@@ -105,7 +105,7 @@ public class FileUtility {
         return receivedChunks.cardinality();
     }
 
-    byte[] getPiece (int partId) {
+    public byte[] getPiece (int partId) {
         byte[] piece = destination.getPartAsByteArray(partId);
         return piece;
     }
