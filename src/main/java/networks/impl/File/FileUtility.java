@@ -45,7 +45,7 @@ public class FileUtility {
         receivedChunks.set (partIdx);
 
         if (isNewPiece) {
-            destination.writeByteArrayAsFilePart(part, partIdx);
+            destination.writeByteArrayAsFileChunk(part, partIdx);
             for (FileEvent listener : fileEvents) {
                 listener.pieceArrived (partIdx);
             }
@@ -85,7 +85,7 @@ public class FileUtility {
     }
 
     public byte[] getChunk(int chunkId) {
-        byte[] chunk = destination.getPartAsByteArray(chunkId);
+        byte[] chunk = destination.getChunkAsByteArray(chunkId);
         return chunk;
     }
 
@@ -98,7 +98,7 @@ public class FileUtility {
     }
 
     public byte[][] getAllPieces(){
-        return destination.getAllPartsAsByteArrays();
+        return destination.getAllChunksAsByteArrays();
     }
 
     public int getBitmapSize() {

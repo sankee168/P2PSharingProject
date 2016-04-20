@@ -15,16 +15,23 @@ import java.util.List;
 //todo: need to edit this file completely
 public class FileOperations {
 
-    public void splitFile(File inputFile, int pieceSize){
+    private File file;
+    private File chunksDir;
+    public FileOperations(File file, File chunksDir){
+        this.file = file;
+        this.chunksDir = chunksDir;
+    }
+
+    public void splitFile(int pieceSize){
 
         FileInputStream inputStream;
         String newFileName;
         FileOutputStream filePart;
-        int fileSize = (int) inputFile.length();
+        int fileSize = (int) file.length();
         int nChunks = 0, read = 0, readLength = pieceSize;
         byte[] byteChunkPart;
         try {
-            inputStream = new FileInputStream(inputFile);
+            inputStream = new FileInputStream(file);
             while (fileSize > 0) {
                 if (fileSize <= 5) {
                     readLength = fileSize;
@@ -34,14 +41,12 @@ public class FileOperations {
                 fileSize -= read;
                 assert (read == byteChunkPart.length);
                 nChunks++;
-                newFileName = inputFile.getParent() + "/parts/" +
-                        inputFile.getName() + "/" + Integer.toString(nChunks - 1);
+                newFileName = file.getParent() + "/parts/" +
+                        file.getName() + "/" + Integer.toString(nChunks - 1);
                 filePart = new FileOutputStream(new File(newFileName));
                 filePart.write(byteChunkPart);
                 filePart.flush();
                 filePart.close();
-                byteChunkPart = null;
-                filePart = null;
             }
             inputStream.close();
         } catch (IOException e) {
@@ -50,20 +55,18 @@ public class FileOperations {
         }
     }
 
-    public void mergeFile() {
-        //todo: why do we require these file names?
-        File ofile = new File("ImageFile2.jpg");
-        String FILE_NAME = "ImageFile.jpg";
+    public void mergeFile(int numParts) {
+        File ofile = file;
         FileOutputStream fos;
         FileInputStream fis;
         byte[] fileBytes;
         int bytesRead = 0;
         List<File> list = new ArrayList<File>();
-        for (int i = 0; i < 211; i++) {
-            list.add(new File("parts/" + FILE_NAME + ".part" + i));
+        for (int i = 0; i < numParts; i++) {
+            list.add(new File(chunksDir.getPath() + "/" + i));
         }
         try {
-            fos = new FileOutputStream(ofile, true);
+            fos = new FileOutputStream(ofile);
             for (File file : list) {
                 fis = new FileInputStream(file);
                 fileBytes = new byte[(int) file.length()];
@@ -77,10 +80,8 @@ public class FileOperations {
                 fis = null;
             }
             fos.close();
-            fos = null;
-        } catch (Exception e) {
-            //todo:write logger here
-            LogHelper.getLogger().warning(e);
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 }
