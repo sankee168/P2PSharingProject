@@ -43,7 +43,6 @@ public class Process implements Runnable, FileEvent, PeerEvents{
         ArrayList<RemotePeerInfo> remotePeers = new ArrayList<RemotePeerInfo>(peerInfo);
         for (RemotePeerInfo ri : remotePeers) {
             if (ri.getPeerId() == peerId) {
-                // rmeove myself
                 remotePeers.remove(ri);
                 break;
             }

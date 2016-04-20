@@ -2,6 +2,7 @@ package networks.impl;
 
 import networks.models.RemotePeerInfo;
 import networks.references.Constants;
+import networks.utilities.LogHelper;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -22,11 +23,10 @@ public class PeerImplementation {
         try {
             br = new BufferedReader(new FileReader(Constants.Files.peerInfoFile));
         } catch (FileNotFoundException e) {
-            //todo: handle this exception
-            e.printStackTrace();
+            LogHelper.getLogger().severe("FileNotFoundException" + Constants.Files.peerInfoFile);
         }
         try {
-            String line = null;
+            String line;
             try {
                 line = br.readLine();
                 while (line != null) {
@@ -34,13 +34,13 @@ public class PeerImplementation {
                     line = br.readLine();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LogHelper.getLogger().severe("IOException");
             }
         } finally {
             try {
                 br.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LogHelper.getLogger().severe("IOException");
             }
         }
 
@@ -49,7 +49,6 @@ public class PeerImplementation {
 
     public RemotePeerInfo readRemotePeerInfoFromLine(String line) {
         String[] tmp = line.split(" ");
-
         RemotePeerInfo remotePeerInfo = new RemotePeerInfo(Integer.parseInt(tmp[0]), tmp[1], Integer.parseInt(tmp[2]), (tmp[3].equals("1"))?true:false);
         return remotePeerInfo;
     }

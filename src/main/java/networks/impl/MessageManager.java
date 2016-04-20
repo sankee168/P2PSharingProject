@@ -18,7 +18,6 @@ public class MessageManager {
     private final PeerManager peerMgr;
     private final EventLogger eventLogger;
 
-
     MessageManager(int remotePeerId, FileUtility fileUtil, PeerManager peerMgr, EventLogger eventLogger) {
         isChoked = true;
         this.fileUtil = fileUtil;
@@ -26,8 +25,6 @@ public class MessageManager {
         this.remotePeerId = remotePeerId;
         this.eventLogger = eventLogger;
     }
-
-
 
     public Message handle() {
         BitSet bitset = fileUtil.getReceivedChunks();
@@ -80,7 +77,6 @@ public class MessageManager {
                 if (bitset.isEmpty()) {
                     return new NotInterested();
                 } else {
-                    // the peer has parts that this peer does not have
                     return new Interested();
                 }
             }
@@ -105,7 +101,6 @@ public class MessageManager {
                 return requestChunk();
             }
         }
-
         return null;
     }
 

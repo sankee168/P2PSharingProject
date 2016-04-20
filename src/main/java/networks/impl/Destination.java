@@ -4,11 +4,8 @@ import networks.impl.File.FileOperations;
 import networks.utilities.LogHelper;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.io.FilenameFilter;
 
-//todo: change everything in here including name of file
 public class Destination {
 
     private final File file;
@@ -50,10 +47,8 @@ public class Destination {
             fos.flush();
             fos.close();
         } catch (FileNotFoundException e) {
-            //todo: log here
             LogHelper.getLogger().warning(e);
         } catch (IOException e) {
-            //todo: log here
             LogHelper.getLogger().warning(e);
         }
     }
@@ -69,10 +64,8 @@ public class Destination {
             assert (bytesRead == (int) file.length());
             return fileBytes;
         } catch (FileNotFoundException e) {
-            //todo: log here
             LogHelper.getLogger().warning(e);
         } catch (IOException e) {
-            //todo: log here
             LogHelper.getLogger().warning(e);
         } finally {
             if (fis != null) {
