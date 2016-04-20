@@ -1,5 +1,7 @@
 package impl;
 
+import utilities.PayloadWriter;
+
 import java.net.Socket;
 
 /**
@@ -7,7 +9,8 @@ import java.net.Socket;
  */
 public class ConnectionManager implements Runnable {
 
-    private final Socket socket;
+    private Socket socket;
+    private PayloadWriter payloadWriter;
 
     public ConnectionManager(Socket socket) {
         this.socket = socket;
