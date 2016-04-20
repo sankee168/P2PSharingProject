@@ -1,6 +1,7 @@
 package networks.impl;
 
 import networks.impl.File.FileOperations;
+import networks.utilities.LogHelper;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -58,10 +59,10 @@ public class Destination {
             fos.close();
         } catch (FileNotFoundException e) {
             //todo: log here
-//            LogHelper.getLogger().warning(e);
+            LogHelper.getLogger().warning(e);
         } catch (IOException e) {
             //todo: log here
-//            LogHelper.getLogger().warning(e);
+            LogHelper.getLogger().warning(e);
         }
     }
 
@@ -77,10 +78,10 @@ public class Destination {
             return fileBytes;
         } catch (FileNotFoundException e) {
             //todo: log here
-//            LogHelper.getLogger().warning(e);
+            LogHelper.getLogger().warning(e);
         } catch (IOException e) {
             //todo: log here
-//            LogHelper.getLogger().warning(e);
+            LogHelper.getLogger().warning(e);
         } finally {
             if (fis != null) {
                 try {
@@ -97,7 +98,7 @@ public class Destination {
 
         fileOperations.splitFile(_file, partSize);
         //todo: log here
-//        LogHelper.getLogger().debug("File has been split");
+        LogHelper.getLogger().debug("File has been split");
     }
 
     public void mergeFile(int numParts) {

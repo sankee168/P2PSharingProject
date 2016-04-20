@@ -3,6 +3,7 @@ package networks.impl;
 import networks.impl.File.FileUtility;
 import networks.models.Message;
 import networks.models.Request;
+import networks.utilities.LogHelper;
 import networks.utilities.PayloadWriter;
 
 import java.io.IOException;
@@ -33,14 +34,14 @@ public class RequestTimer extends TimerTask{
     public void run() {
         if (fileManager.hasPart(ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt())){
             ;
-        System.out.println("agkjshdgajhsfdhgjasfdjhasfgjhdgfasgh");
-//            LogHelper.getLogger().debug("Not rerequesting piece " + _request.getPieceIndex()
-//                    + " to peer " + _remotePeerId);
+//        System.out.println("agkjshdgajhsfdhgjasfdjhasfgjhdgfasgh");
+            LogHelper.getLogger().debug("Not rerequesting piece " + ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt()
+                    + " to peer " + remotePeerId);
     }
         else {
             System.out.println("kaushdgakhsfgdkhjasgkdhas");
-//            LogHelper.getLogger().debug("Rerequesting piece " + _request.getPieceIndex()
-//                    + " to peer " + _remotePeerId);
+            LogHelper.getLogger().debug("Rerequesting piece " + ByteBuffer.wrap(Arrays.copyOfRange(request.getPayload(), 0, 4)).order(ByteOrder.BIG_ENDIAN).getInt()
+                    + " to peer " + remotePeerId);
             try {
                 outStream.writeObject(message);
             } catch (IOException e) {

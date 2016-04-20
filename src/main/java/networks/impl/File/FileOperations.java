@@ -1,5 +1,7 @@
 package networks.impl.File;
 
+import networks.utilities.LogHelper;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -44,7 +46,7 @@ public class FileOperations {
             inputStream.close();
         } catch (IOException e) {
             //todo: need to include warning
-//            LogHelper.getLogger().warning(e);
+            LogHelper.getLogger().warning(e);
         }
     }
 
@@ -78,7 +80,7 @@ public class FileOperations {
             fos = null;
         } catch (Exception e) {
             //todo:write logger here
-//            LogHelper.getLogger().warning(e);
+            LogHelper.getLogger().warning(e);
         }
     }
 }

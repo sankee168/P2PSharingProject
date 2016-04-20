@@ -3,6 +3,7 @@ package networks;
 import networks.impl.PeerImplementation;
 import networks.impl.Process;
 import networks.models.RemotePeerInfo;
+import networks.utilities.LogHelper;
 import networks.utilities.PropertyFileUtility;
 
 import java.io.IOException;
@@ -17,10 +18,10 @@ public class peerProcess {
 
         PeerImplementation peerImplementation = new PeerImplementation();
         if (args.length != 1) {
-//            LogHelper.getLogger().severe("the number of arguments passed to the program is " + args.length + " while it should be 1.\nUsage: java networks.peerProcess peerId");
+            LogHelper.getLogger().severe("the number of arguments passed to the program is " + args.length + " while it should be 1.\nUsage: java networks.peerProcess peerId");
         }
         final int peerId = Integer.parseInt(args[0]);
-//        LogHelper.configure(peerId);
+        LogHelper.configure(peerId);
         String address = "localhost";
         int port = 6008;
         boolean hasFile = false;
@@ -43,9 +44,11 @@ public class peerProcess {
                 address = currPeer.getPeerAddress();
                 port = currPeer.getPeerPort();
                 hasFile = currPeer.isHasFile();
+                break;
             }
             else {
                 peersToConnectTo.add(currPeer);
+                LogHelper.getLogger().conf ("Read configuration for peer: " + peerId);
                 System.out.println("Read configuration for peer : " + peerId);
             }
 //            for (RemotePeerInfo peer : peerInfo.getPeerInfo()) {
@@ -70,8 +73,9 @@ public class peerProcess {
         t.setName ("networks.peerProcess-" + peerId);
         t.start();
 
-//        LogHelper.getLogger().debug ("Connecting to " + peersToConnectTo.size() + " peers.");
+        LogHelper.getLogger().debug ("Connecting to " + peersToConnectTo.size() + " peers.");
         peerProc.connectToPeers (peersToConnectTo);
+
         try {
             Thread.sleep(5);
         } catch (InterruptedException e) {

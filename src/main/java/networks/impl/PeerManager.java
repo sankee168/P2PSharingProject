@@ -2,6 +2,8 @@ package networks.impl;
 
 import networks.models.RemotePeerInfo;
 import networks.references.Constants;
+import networks.utilities.EventLogger;
+import networks.utilities.LogHelper;
 import networks.utilities.PropertyFileUtility;
 import networks.utilities.RandomUtils;
 
@@ -51,8 +53,8 @@ public class PeerManager implements Runnable{
                 }
 
                 if (_chokedNeighbors.size() > 0) {
-//                    LogHelper.getLogger().debug("STATE: OPT UNCHOKED(" + _numberOfOptimisticallyUnchokedNeighbors + "):" + LogHelper.getPeerIdsAsString (_optmisticallyUnchokedPeers));
-//                    _eventLogger.changeOfOptimisticallyUnchokedNeighbors(LogHelper.getPeerIdsAsString (_optmisticallyUnchokedPeers));
+                    LogHelper.getLogger().debug("STATE: OPT UNCHOKED(" + _numberOfOptimisticallyUnchokedNeighbors + "):" + LogHelper.getPeerIdsAsString (_optmisticallyUnchokedPeers));
+                    _eventLogger.changeOfOptimisticallyUnchokedNeighbors(LogHelper.getPeerIdsAsString (_optmisticallyUnchokedPeers));
                 }
                 for (PeerEvents listener : _listeners) {
                     listener.unchockedPeers(new RandomUtils().getIds(_optmisticallyUnchokedPeers));
@@ -64,7 +66,7 @@ public class PeerManager implements Runnable{
     private final int _numberOfPreferredNeighbors;
     private final int _unchokingInterval;
     private final int _bitmapsize;
-//    private final EventLogger _eventLogger;
+    private final EventLogger _eventLogger;
     private final List<RemotePeerInfo> _peers = new ArrayList<RemotePeerInfo>();
     private final Collection<RemotePeerInfo> _preferredPeers = new HashSet<RemotePeerInfo>();
     private final OptimisticUnchoker _optUnchoker;
@@ -79,7 +81,7 @@ public class PeerManager implements Runnable{
                 conf.getStringValue(Constants.CommonConfig.unChokingInterval)) * 1000;
         _optUnchoker = new OptimisticUnchoker(conf);
         _bitmapsize = bitmapsize;
-//        _eventLogger = new EventLogger (peerId);
+        _eventLogger = new EventLogger(peerId);
     }
 
     synchronized void addInterestPeer(int remotePeerId) {
@@ -167,7 +169,7 @@ public class PeerManager implements Runnable{
                 return peer;
             }
         }
-//        LogHelper.getLogger().warning("Peer " + peerId + " not found");
+        LogHelper.getLogger().warning("Peer " + peerId + " not found");
         return null;
     }
 
@@ -175,7 +177,7 @@ public class PeerManager implements Runnable{
         for (RemotePeerInfo peer : _peers) {
             if (peer.receivedParts.cardinality() < _bitmapsize) {
                 // at least one neighbor has not completed
-//                LogHelper.getLogger().debug("Peer " + peer.getPeerId() + " has not completed yet");
+                LogHelper.getLogger().debug("Peer " + peer.getPeerId() + " has not completed yet");
                 return;
             }
         }
@@ -204,7 +206,7 @@ public class PeerManager implements Runnable{
             if (_randomlySelectPreferred.get()) {
                 // Randomly shuffle the neighbors
                 System.out.println("asdjhgajshgdasjgdsajhgd");
-//                LogHelper.getLogger().debug("selecting preferred peers randomly");
+                LogHelper.getLogger().debug("selecting preferred peers randomly");
                 Collections.shuffle(interestedPeers);
             }
             else {
@@ -260,17 +262,17 @@ public class PeerManager implements Runnable{
             }
 
             // debug
-//            LogHelper.getLogger().debug("STATE: INTERESTED:" + LogHelper.getPeerIdsAsString (interestedPeers));
-//            LogHelper.getLogger().debug("STATE: UNCHOKED (" + _numberOfPreferredNeighbors + "):" + LogHelper.getPeerIdsAsString2 (preferredNeighborsIDs));
-//            LogHelper.getLogger().debug("STATE: CHOKED:" + LogHelper.getPeerIdsAsString2 (chokedPeersIDs));
+            LogHelper.getLogger().debug("STATE: INTERESTED:" + LogHelper.getPeerIdsAsString (interestedPeers));
+            LogHelper.getLogger().debug("STATE: UNCHOKED (" + _numberOfPreferredNeighbors + "):" + LogHelper.getPeerIdsAsString2 (preferredNeighborsIDs));
+            LogHelper.getLogger().debug("STATE: CHOKED:" + LogHelper.getPeerIdsAsString2 (chokedPeersIDs));
 
             for (Map.Entry<Integer,Long> entry : downloadedBytes.entrySet()) {
                 String PREFERRED = preferredNeighborsIDs.contains(entry.getKey()) ? " *" : "";
-                System.out.println("askjdhgasjgdashdghaskjdgasjhdgajsghdjas");
-//                LogHelper.getLogger().debug("BYTES DOWNLOADED FROM  PEER " + entry.getKey() + ": "
-//                        + entry.getValue() + " (INTERESTED PEERS: "
-//                        + interestedPeers.size()+ ": " + LogHelper.getPeerIdsAsString (interestedPeers)
-//                        + ")\t" + PREFERRED);
+//                System.out.println("askjdhgasjgdashdghaskjdgasjhdgajsghdjas");
+                LogHelper.getLogger().debug("BYTES DOWNLOADED FROM  PEER " + entry.getKey() + ": "
+                        + entry.getValue() + " (INTERESTED PEERS: "
+                        + interestedPeers.size()+ ": " + LogHelper.getPeerIdsAsString (interestedPeers)
+                        + ")\t" + PREFERRED);
             }
 
             // 5) NOTIFY PROCESS, IT WILL TAKE CARE OF SENDING CHOKE AND UNCHOKE MESSAGES

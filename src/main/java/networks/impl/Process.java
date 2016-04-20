@@ -3,6 +3,8 @@ package networks.impl;
 import networks.impl.File.FileEvent;
 import networks.impl.File.FileUtility;
 import networks.models.*;
+import networks.utilities.EventLogger;
+import networks.utilities.LogHelper;
 import networks.utilities.PropertyFileUtility;
 
 import java.io.IOException;
@@ -25,7 +27,7 @@ public class Process implements Runnable, FileEvent, PeerEvents{
     private final PropertyFileUtility _conf;
     private final FileUtility _fileMgr;
     private final PeerManager _peerMgr;
-//    private final EventLogger _eventLogger;
+    private final EventLogger _eventLogger;
     private final AtomicBoolean _fileCompleted = new AtomicBoolean(false);
     private final AtomicBoolean _peersFileCompleted = new AtomicBoolean(false);
     private final AtomicBoolean _terminate = new AtomicBoolean(false);
@@ -47,7 +49,7 @@ public class Process implements Runnable, FileEvent, PeerEvents{
             }
         }
         _peerMgr = new PeerManager(_peerId, remotePeers, _fileMgr.getBitmapSize(), _conf);
-//        _eventLogger = new EventLogger(peerId);
+        _eventLogger = new EventLogger(peerId);
         _fileCompleted.set(_hasFile);
     }
 
@@ -56,14 +58,14 @@ public class Process implements Runnable, FileEvent, PeerEvents{
         _peerMgr.registerListener(this);
 
         if (_hasFile) {
-            System.out.println("Splitting File");
-//            LogHelper.getLogger().debug("Spltting file");
+//            System.out.println("Splitting File");
+            LogHelper.getLogger().debug("Spltting file");
             _fileMgr.splitFile();
             _fileMgr.setAllParts();
         }
         else {
-            System.out.println("Peer does not have file");
-//            LogHelper.getLogger().debug("Peer does not have file");
+//            System.out.println("Peer does not have file");
+            LogHelper.getLogger().debug("Peer does not have file " + _peerId);
         }
 
         // Start PeerMnager Thread
@@ -77,21 +79,21 @@ public class Process implements Runnable, FileEvent, PeerEvents{
             ServerSocket serverSocket = new ServerSocket(_port);
             while (!_terminate.get()) {
                 try {
-//                    LogHelper.getLogger().debug(Thread.currentThread().getName() + ": Peer " + _peerId + " listening on port " + _port + ".");
+                    LogHelper.getLogger().debug(Thread.currentThread().getName() + ": Peer " + _peerId + " listening on port " + _port + ".");
                     addConnHandler(new ConnectionManager(_peerId, serverSocket.accept(), _fileMgr, _peerMgr));
 
                 } catch (Exception e) {
-                    System.out.println("asdgagshfdghasfdha");
-//                    LogHelper.getLogger().warning(e);
+//                    System.out.println("asdgagshfdghasfdha");
+                    LogHelper.getLogger().warning(e);
                 }
             }
         } catch (IOException ex) {
-            System.out.println("a,sdhjgashjgdjkasgdjhas");
-//            LogHelper.getLogger().warning(ex);
+//            System.out.println("a,sdhjgashjgdjkasgdjhas");
+            LogHelper.getLogger().warning(ex);
         } finally {
-            System.out.println("amsgdvasjh,gdjahsgdkjahsg");
-//            LogHelper.getLogger().warning(Thread.currentThread().getName()
-//                    + " terminating, TCP connections will no longer be accepted.");
+//            System.out.println("amsgdvasjh,gdjahsgdkjahsg");
+            LogHelper.getLogger().warning(Thread.currentThread().getName()
+                    + " terminating, TCP connections will no longer be accepted.");
         }
     }
 
@@ -102,22 +104,22 @@ public class Process implements Runnable, FileEvent, PeerEvents{
                 Socket socket = null;
                 RemotePeerInfo peer = iter.next();
                 try {
-//                    LogHelper.getLogger().debug(" Connecting to peer: " + peer.getPeerId()
-//                            + " (" + peer.getPeerAddress() + ":" + peer.getPeerPort() + ")");
+                    LogHelper.getLogger().debug(" Connecting to peer: " + peer.getPeerId()
+                            + " (" + peer.getPeerAddress() + ":" + peer.getPeerPort() + ")");
                     socket = new Socket(peer.getPeerAddress(), peer.getPeerPort());
                     if (addConnHandler(new ConnectionManager(_peerId, true, peer.getPeerId(),
                             socket, _fileMgr, _peerMgr))) {
                         iter.remove();
-                        System.out.println("asdhgaksjgdjasgd");
-//                        LogHelper.getLogger().debug(" Connected to peer: " + peer.getPeerId()
-//                                + " (" + peer._peerAddress + ":" + peer.getPort() + ")");
+//                        System.out.println("asdhgaksjgdjasgd");
+                        LogHelper.getLogger().debug(" Connected to peer: " + peer.getPeerId()
+                                + " (" + peer.getPeerAddress() + ":" + peer.getPeerPort() + ")");
 
                     }
                 }
                 catch (ConnectException ex) {
-                    System.out.println("kjhlkhfkjvhkbvhnlukgetv8lo,mk");
-//                    LogHelper.getLogger().warning("could not connect to peer " + peer.getPeerId()
-//                            + " at address " + peer._peerAddress + ":" + peer.getPort());
+//                    System.out.println("kjhlkhfkjvhkbvhnlukgetv8lo,mk");
+                    LogHelper.getLogger().warning("could not connect to peer " + peer.getPeerId()
+                            + " at address " + peer.getPeerAddress() + ":" + peer.getPeerPort());
                     if (socket != null) {
                         try {
                             socket.close();
@@ -132,8 +134,8 @@ public class Process implements Runnable, FileEvent, PeerEvents{
                         } catch (IOException ex1)
                         {}
                     }
-                    System.out.println("ashdgajsdgjas");
-//                    LogHelper.getLogger().warning(ex);
+//                    System.out.println("ashdgajsdgjas");
+                    LogHelper.getLogger().warning(ex);
                 }
             }
             while (iter.hasNext());
@@ -148,8 +150,8 @@ public class Process implements Runnable, FileEvent, PeerEvents{
     }
 
     public void neighborsCompletedDownload() {
-//        LogHelper.getLogger().debug("all peers completed download");
-        System.out.println("adjhgaskjdghaskjdgaskhjg");
+        LogHelper.getLogger().debug("all peers completed download");
+//        System.out.println("adjhgaskjdghaskjdgaskhjg");
         _peersFileCompleted.set(true);
         if (_fileCompleted.get() && _peersFileCompleted.get()) {
             // The process can quit
@@ -159,9 +161,9 @@ public class Process implements Runnable, FileEvent, PeerEvents{
     }
 
     public synchronized void fileCompleted() {
-        System.out.println("alksdghaksjhdgakjhsgdhsaghj");
-//        LogHelper.getLogger().debug("local peer completed download");
-//        _eventLogger.fileDownloadedMessage();
+//        System.out.println("alksdghaksjhdgakjhsgdhsaghj");
+        LogHelper.getLogger().debug("local peer completed download");
+        _eventLogger.fileDownloadedMessage();
         _fileCompleted.set(true);
         if (_fileCompleted.get() && _peersFileCompleted.get()) {
             // The process can quit
@@ -186,14 +188,14 @@ public class Process implements Runnable, FileEvent, PeerEvents{
             try {
                 wait(10);
             } catch (InterruptedException e) {
-                System.out.println("jahgsdhkjagsdkjasgh");
-//                LogHelper.getLogger().warning(e);
+//                System.out.println("jahgsdhkjagsdkjasgh");
+                LogHelper.getLogger().warning(e);
             }
 
         }
         else {
-            System.out.println("akjhsgdhakjsgdhkjasgfdhkjsagfkhdj");
-//            LogHelper.getLogger().debug("Peer " + connHandler.getRemotePeerId() + " is trying to connect but a connection already exists");
+//            System.out.println("akjhsgdhakjsgdhkjasgfdhkjsagfkhdj");
+            LogHelper.getLogger().debug("Peer " + connHandler.getRemotePeerId() + " is trying to connect but a connection already exists");
         }
         return true;
     }
@@ -201,8 +203,8 @@ public class Process implements Runnable, FileEvent, PeerEvents{
     public synchronized void chockedPeers(Collection<Integer> chokedPeersIds) {
         for (ConnectionManager ch : _connHandlers) {
             if (chokedPeersIds.contains(ch.getRemotePeerId())) {
-                System.out.println("akjhsdjasgdhjasgd");
-//                LogHelper.getLogger().debug("Choking " + ch.getRemotePeerId());
+//                System.out.println("akjhsdjasgdhjasgd");
+                LogHelper.getLogger().debug("Choking " + ch.getRemotePeerId());
                 ch.send(new Choke());
             }
         }
@@ -211,8 +213,8 @@ public class Process implements Runnable, FileEvent, PeerEvents{
     public synchronized void unchockedPeers(Collection<Integer> unchokedPeersIds) {
         for (ConnectionManager ch : _connHandlers) {
             if (unchokedPeersIds.contains(ch.getRemotePeerId())) {
-                System.out.println("akjshgdahjsgfdhjafsjhgdfash");
-//                LogHelper.getLogger().debug("Unchoking " + ch.getRemotePeerId());
+//                System.out.println("akjshgdahjsgfdhjafsjhgdfash");
+                LogHelper.getLogger().debug("Unchoking " + ch.getRemotePeerId());
                 ch.send(new Unchoke());
             }
         }

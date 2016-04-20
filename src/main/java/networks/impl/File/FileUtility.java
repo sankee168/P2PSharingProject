@@ -1,6 +1,7 @@
 package networks.impl.File;
 
 import networks.impl.Destination;
+import networks.utilities.LogHelper;
 import networks.utilities.PropertyFileUtility;
 
 import java.util.BitSet;
@@ -38,7 +39,7 @@ public class FileUtility {
     FileUtility(int peerId, String fileName, int fileSize, int partSize, long unchokingInterval) {
         chunkSize = partSize;
         bitsetSize = (int) Math.ceil (fileSize/ chunkSize);
-       // LogHelper.getLogger().debug ("File size set to " + fileSize +  "\tPart size set to " + chunkSize + "\tBitset size set to " + bitsetSize);
+        LogHelper.getLogger().debug ("File size set to " + fileSize +  "\tPart size set to " + chunkSize + "\tBitset size set to " + bitsetSize);
         receivedChunks = new BitSet (bitsetSize);
         destination = new Destination(peerId, fileName);
         requestedChunks = new BitSet(bitsetSize);
@@ -97,7 +98,7 @@ public class FileUtility {
         for (int i = 0; i < bitsetSize; i++) {
             receivedChunks.set(i, true);
         }
-       // LogHelper.getLogger().debug("Received parts set to: " + receivedChunks.toString());
+        LogHelper.getLogger().debug("Received parts set to: " + receivedChunks.toString());
     }
 
     public synchronized int getNumberOfReceivedParts() {
@@ -147,7 +148,7 @@ public class FileUtility {
                         public void run() {
                             synchronized (requestedChunks) {
                                 requestedChunks.clear(partId);
-                                //LogHelper.getLogger().debug("clearing requested parts for pert " + partId);
+                                LogHelper.getLogger().debug("clearing requested parts for pert " + partId);
                             }
                         }
                     },

@@ -33,9 +33,9 @@ public class PeerImplementation {
                 while (line != null) {
 //                    sb.append(line);
 //                    sb.append(System.lineSeparator());
-//                    line = br.readLine();
 //                    String everything = sb.toString();
                     remotePeerInfoList.add(readRemotePeerInfoFromLine(line));
+                    line = br.readLine();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -53,7 +53,8 @@ public class PeerImplementation {
 
     public RemotePeerInfo readRemotePeerInfoFromLine(String line) {
         String[] tmp = line.split(" ");
-        RemotePeerInfo remotePeerInfo = new RemotePeerInfo(Integer.parseInt(tmp[0]), tmp[1], Integer.parseInt(tmp[2]), Boolean.getBoolean(tmp[3]));
+
+        RemotePeerInfo remotePeerInfo = new RemotePeerInfo(Integer.parseInt(tmp[0]), tmp[1], Integer.parseInt(tmp[2]), (tmp[3].equals("1"))?true:false);
         return remotePeerInfo;
     }
 }

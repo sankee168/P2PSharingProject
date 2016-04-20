@@ -4,6 +4,8 @@ import networks.impl.File.FileUtility;
 import networks.models.HandShake;
 import networks.models.Message;
 import networks.models.Request;
+import networks.utilities.EventLogger;
+import networks.utilities.LogHelper;
 import networks.utilities.PayloadReader;
 import networks.utilities.PayloadWriter;
 
@@ -87,11 +89,11 @@ public class ConnectionManager implements Runnable {
                                     sendInternal(message);
                             }
                         } else {
-                           // LogHelper.getLogger().debug("cannot send message of type "
-                                    //+ message.getType() + " because the remote peer has not handshaked yet.");
+                            LogHelper.getLogger().debug("cannot send message of type "
+                                    + message.getMessageType() + " because the remote peer has not handshaked yet.");
                         }
                     } catch (IOException ex) {
-                       // LogHelper.getLogger().warning(ex);
+                        LogHelper.getLogger().warning(ex);
                     } catch (InterruptedException ex) {
                     }
                 }
@@ -108,36 +110,36 @@ public class ConnectionManager implements Runnable {
             // Receive and check handshake
             HandShake rcvdHandshake = (HandShake) in.readObject();
             /* TODO: I think this shud work */
-            remotePeerId.set(localPeerId);
+            remotePeerId.set(ByteBuffer.wrap(rcvdHandshake.getPeerIdBits()).order(ByteOrder.BIG_ENDIAN).getInt());
             Thread.currentThread().setName(getClass().getName() + "-" + remotePeerId.get());
-            //final EventLogger eventLogger = new EventLogger(localPeerId);
-            final MessageManager msgHandler = new MessageManager(remotePeerId.get(), fileUtility, peerMgr);
+            final EventLogger eventLogger = new EventLogger(localPeerId);
+            final MessageManager msgHandler = new MessageManager(remotePeerId.get(), fileUtility, peerMgr, eventLogger);
             if (isConnectingPeer && (remotePeerId.get() != expectedRemotePeerId)) {
                 throw new Exception("Remote peer id " + remotePeerId + " does not match with the expected id: " + expectedRemotePeerId);
             }
 
             // Handshake successful
-            //eventLogger.peerConnection(remotePeerId.get(), isConnectingPeer);
+            eventLogger.peerConnection(remotePeerId.get(), isConnectingPeer);
 
             sendInternal(msgHandler.handle(rcvdHandshake));
             while (true) {
                 try {
                     sendInternal(msgHandler.handle((Message) in.readObject()));
                 } catch (Exception ex) {
-                    //LogHelper.getLogger().warning(ex);
+                    LogHelper.getLogger().warning(ex);
                     break;
                 }
             }
         } catch (Exception ex) {
-            //LogHelper.getLogger().warning(ex);
+            LogHelper.getLogger().warning(ex);
         } finally {
             try {
                 socket.close();
             } catch (Exception e) {
             }
         }
-        //LogHelper.getLogger().warning(Thread.currentThread().getName()
-           //     + " terminating, messages will no longer be accepted.");
+        LogHelper.getLogger().warning(Thread.currentThread().getName()
+                + " terminating, messages will no longer be accepted.");
     }
 
     @Override

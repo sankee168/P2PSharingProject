@@ -2,6 +2,8 @@ package networks.impl;
 
 import networks.impl.File.FileUtility;
 import networks.models.*;
+import networks.utilities.EventLogger;
+import networks.utilities.LogHelper;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -17,24 +19,18 @@ public class MessageManager {
     private final int remotePeerId;
     private final FileUtility fileUtil;
     private final PeerManager peerMgr;
-    //private final EventLogger _eventLogger;
+    private final EventLogger eventLogger;
 
 
-    /* TODO: Fix the eventlogger in this chatha!
-    MessageManager(int remotePeerId, FileUtility fileMgr, PeerManager peerMgr, EventLogger eventLogger) {
+    MessageManager(int remotePeerId, FileUtility fileMgr, PeerManager peerMgr, EventLogger eventLogger1) {
         chokedByRemotePeer = true;
         fileUtil = fileMgr;
         this.peerMgr = peerMgr;
         this.remotePeerId = remotePeerId;
-        //_eventLogger = eventLogger;
-    }*/
-
-    MessageManager(int remotePeerId, FileUtility fileMgr, PeerManager peerMgr) {
-        chokedByRemotePeer = true;
-        fileUtil = fileMgr;
-        this.peerMgr = peerMgr;
-        this.remotePeerId = remotePeerId;
+        eventLogger = eventLogger1;
     }
+
+
 
     public Message handle(HandShake handshake) {
         BitSet bitset = fileUtil.getReceivedParts();
@@ -48,12 +44,12 @@ public class MessageManager {
         switch (msg.getMessageType()) {
             case Choke: {
                 chokedByRemotePeer = true;
-                //_eventLogger.chokeMessage(remotePeerId);
+                eventLogger.chokeMessage(remotePeerId);
                 return null;
             }
             case Unchoke: {
                 chokedByRemotePeer = false;
-                //_eventLogger.unchokeMessage(remotePeerId);
+                eventLogger.unchokeMessage(remotePeerId);
                 return requestPiece();
             }
             case Interested: {
@@ -62,14 +58,14 @@ public class MessageManager {
                 return null;
             }
             case NotInterested: {
-                //_eventLogger.notInterestedMessage(remotePeerId);
+                eventLogger.notInterestedMessage(remotePeerId);
                 peerMgr.removeInterestPeer(remotePeerId);
                 return null;
             }
             case Have: {
                 Have have = (Have) msg;
                 final int pieceId = have.getPartIndex();
-                //_eventLogger.haveMessage(remotePeerId, pieceId);
+                eventLogger.haveMessage(remotePeerId, pieceId);
                 peerMgr.haveArrived(remotePeerId, pieceId);
 
                 if (fileUtil.getReceivedParts().get(pieceId)) {
@@ -108,7 +104,8 @@ public class MessageManager {
                 fileUtil.addPart(ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
                         .order(ByteOrder.BIG_ENDIAN).getInt(), piece.getContent());
                 peerMgr.receivedPart(remotePeerId, piece.getContent().length);
-                //_eventLogger.pieceDownloadedMessage(remotePeerId, piece.getPieceIndex(), fileUtil.getNumberOfReceivedParts());
+                eventLogger.pieceDownloadedMessage(remotePeerId, ByteBuffer.wrap(Arrays.copyOfRange(msg.getPayload(), 0, 4))
+                        .order(ByteOrder.BIG_ENDIAN).getInt(), fileUtil.getNumberOfReceivedParts());
                 return requestPiece();
             }
         }
@@ -120,11 +117,11 @@ public class MessageManager {
         if (!chokedByRemotePeer) {
             int partId = fileUtil.getPartToRequest(peerMgr.getReceivedParts(remotePeerId));
             if (partId >= 0) {
-               // LogHelper.getLogger().debug("Requesting part " + partId + " to " + remotePeerId);
+                LogHelper.getLogger().debug("Requesting part " + partId + " to " + remotePeerId);
                 return new Request(ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN).putInt(partId).array());
             }
             else {
-               // LogHelper.getLogger().debug("No parts can be requested to " + remotePeerId);
+                LogHelper.getLogger().debug("No parts can be requested to " + remotePeerId);
             }
         }
         return null;
