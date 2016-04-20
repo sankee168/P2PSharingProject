@@ -6,6 +6,8 @@ import networks.references.Constants.HandShakeHeader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Created by sank on 4/19/16.
@@ -26,6 +28,12 @@ public class HandShake {
             throw new IndexOutOfBoundsException("PeerId should have max length" + HandShakeHeader.PEER_ID_BIT_SIZE);
         }
         this.peerIdBits = peerId;
+    }
+
+    public HandShake (int peerId) {
+
+        this (ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN).putInt(peerId).array());
+        System.out.println("Peer id in out handshake " + peerId);
     }
 
     public void write(DataOutputStream outputStream) throws IOException {

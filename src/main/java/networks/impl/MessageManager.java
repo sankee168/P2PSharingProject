@@ -53,7 +53,7 @@ public class MessageManager {
                 return requestPiece();
             }
             case Interested: {
-                //_eventLogger.interestedMessage(remotePeerId);
+                eventLogger.interestedMessage(remotePeerId);
                 peerMgr.addInterestPeer(remotePeerId);
                 return null;
             }

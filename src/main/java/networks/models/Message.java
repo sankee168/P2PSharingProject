@@ -21,11 +21,11 @@ public class Message {
         this (type, null);
     }
 
-    protected Message (MessageType messageType1, byte[] payload) {
+    protected Message (MessageType messageType1, byte[] payload1) {
         length = (payload == null ? 0 : payload.length)
                 + 1; // for the _type
         messageType = messageType1;
-        payload = payload;
+        payload = payload1;
     }
 
     //getType is replaced by getMessageType
