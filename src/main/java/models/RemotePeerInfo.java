@@ -19,7 +19,7 @@ public class RemotePeerInfo {
     public final boolean hasFile;
     public AtomicInteger bytesDownloadedFrom;
     public BitSet receivedParts;
-    private final AtomicBoolean interested;
+    public Boolean interested;
 
     public RemotePeerInfo (int peerId) {
         this (peerId, "127.0.0.1", 0, false);
@@ -32,7 +32,7 @@ public class RemotePeerInfo {
         hasFile = hasFile1;
         bytesDownloadedFrom = new AtomicInteger (0);
         receivedParts = new BitSet();
-        interested = new AtomicBoolean (false);
+        interested = false;
     }
 
 //    @Override
