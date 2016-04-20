@@ -31,6 +31,10 @@ public enum MessageType {
         messageType = type;
     }
 
+    public byte getMessageType() {
+        return this.messageType;
+    }
+
 //    getValue is replaced with getMessageType
 //    public byte getValue() {
 //        return messageType;
