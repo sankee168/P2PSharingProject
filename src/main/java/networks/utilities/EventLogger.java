@@ -4,6 +4,7 @@ package networks.utilities;
  *
  * @author Giacomo Benincasa    (giacomo@cise.ufl.edu)
  */
+//todo:need to change this
 public class EventLogger {
     private final LogHelper _logHelper;
     private final String _msgHeader; 

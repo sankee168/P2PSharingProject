@@ -10,6 +10,7 @@ import java.util.logging.*;
 /**
  * @author Giacomo Benincasa    (giacomo@cise.ufl.edu)
  */
+//todo:need to change this
 public class LogHelper {
     private static final String CONF = "log4j.properties";
     private static final LogHelper _log = new LogHelper(Logger.getLogger("CNT5106C"));
